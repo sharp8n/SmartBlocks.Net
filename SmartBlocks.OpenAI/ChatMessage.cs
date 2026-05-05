@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SmartBlocks.OpenAIFramework;
+namespace SmartBlocks.OpenAI;
 
 /// <summary>
 /// The only message model. Supports text, images, and tool call/result data.

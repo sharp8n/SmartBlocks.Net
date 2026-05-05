@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartBlocks.OpenAIFramework\SmartBlocks.OpenAIFramework.csproj" />
+    <ProjectReference Include="..\SmartBlocks.OpenAI\SmartBlocks.OpenAI.csproj" />
   </ItemGroup>
 
 </Project>

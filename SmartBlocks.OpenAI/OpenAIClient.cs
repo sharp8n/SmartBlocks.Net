@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using SkiaSharp;
 
-namespace SmartBlocks.OpenAIFramework;
+namespace SmartBlocks.OpenAI;
 
 /// <summary>
 /// Minimal OpenAI chat-completions client.

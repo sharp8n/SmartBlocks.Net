@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Xunit;
 
-namespace SmartBlocks.OpenAIFramework.Tests;
+namespace SmartBlocks.OpenAI.Tests;
 
 /// <summary>
 /// Integration tests for the custom OpenAI client.

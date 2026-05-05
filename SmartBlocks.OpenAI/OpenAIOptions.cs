@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SmartBlocks.OpenAIFramework;
+namespace SmartBlocks.OpenAI;
 
 /// <summary>
 /// Configurable options for OpenAI chat completion requests.

@@ -14,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+
+    <ProjectReference Include="..\SmartBlocks.OpenAI\SmartBlocks.OpenAI.csproj" />
   </ItemGroup>
 
 </Project>

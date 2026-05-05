@@ -11,7 +11,7 @@
 //    7. Reasoning content display (DeepSeek R1, QwQ, etc.)
 // ═══════════════════════════════════════════════════════════════════════════
 
-using SmartBlocks.OpenAIFramework;
+using SmartBlocks.OpenAI;
 
 // ── Provider configuration ───────────────────────────────────────────────
 // Edit these to switch between providers. The keys are real (live) keys.

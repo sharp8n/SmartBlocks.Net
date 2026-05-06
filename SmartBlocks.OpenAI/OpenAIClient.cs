@@ -74,9 +74,9 @@ public sealed class OpenAIClient : IDisposable
     /// <summary>
     /// Registered tools accessible to the agentic loop.
     /// Key   = tool name (must match the function name the model requests).
-    /// Value = (JsonElement args) => string result.
+    /// Value = (JsonElement args) => Task<string> result (async handler).
     /// </summary>
-    public Dictionary<string, Func<JsonElement, string>> Tools { get; } = new();
+    public Dictionary<string, Func<JsonElement, Task<string>>> Tools { get; } = new();
 
     /// <summary>
     /// JSON schema definitions for each tool, serialised as a JsonElement array
@@ -128,7 +128,7 @@ public sealed class OpenAIClient : IDisposable
         using var doc = JsonDocument.Parse(jsonSchema);
         ToolDefinitions.Add(doc.RootElement.Clone());
 
-        Tools[name] = args =>
+        Tools[name] = async args =>
         {
             var method = handler.GetMethodInfo();
             var parameters = method.GetParameters();
@@ -148,6 +148,12 @@ public sealed class OpenAIClient : IDisposable
             }
 
             var result = handler.DynamicInvoke(invokeArgs);
+            if (result is Task taskResult)
+            {
+                await taskResult.ConfigureAwait(false);
+                var resultProperty = taskResult.GetType().GetProperty("Result");
+                return resultProperty?.GetValue(taskResult)?.ToString() ?? "";
+            }
             return result?.ToString() ?? "";
         };
     }
@@ -242,15 +248,21 @@ public sealed class OpenAIClient : IDisposable
                     if (data == "[DONE]") break;
 
                     // Yield content delta chunks for the caller
+                    Console.ResetColor();
                     IsReasoning = false;
                     foreach (var delta in YieldContentChunks(data))
+                    {
+                        Console.Write(delta);
                         yield return delta;
+                    }
 
                     // Yield reasoning chunks separately
                     IsReasoning = true;
                     foreach (var reasoningDelta in YieldReasoningChunks(data))
                     {
                         OnReasoning?.Invoke(reasoningDelta);
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write(reasoningDelta);
                         yield return reasoningDelta;
                     }
 
@@ -281,7 +293,7 @@ public sealed class OpenAIClient : IDisposable
 
                 foreach (var tc in toolCallsBuilder)
                 {
-                    var result = ExecuteTool(tc);
+                    var result = await ExecuteToolAsync(tc);
                     var resultMsg = ChatMessage.Tool(tc.Id, tc.Name, result);
                     History.Add(resultMsg);
                     yield return $"[TOOL {tc.Name} => {result}]";
@@ -404,7 +416,7 @@ public sealed class OpenAIClient : IDisposable
 
                             foreach (var tc in toolCallsBuilder)
                             {
-                                var result = ExecuteTool(tc);
+                                var result = await ExecuteToolAsync(tc);
                                 var resultMsg = ChatMessage.Tool(tc.Id, tc.Name, result);
                                 History.Add(resultMsg);
                             }
@@ -636,7 +648,7 @@ public sealed class OpenAIClient : IDisposable
 
     // ── Tool execution ──────────────────────────────────────────────────────
 
-    private string ExecuteTool(PendingToolCall tc)
+    private async Task<string> ExecuteToolAsync(PendingToolCall tc)
     {
         if (!Tools.TryGetValue(tc.Name, out var handler))
             return $"Error: unknown tool '{tc.Name}'";
@@ -644,7 +656,7 @@ public sealed class OpenAIClient : IDisposable
         try
         {
             using var argsDoc = JsonDocument.Parse(tc.Arguments);
-            return handler(argsDoc.RootElement);
+            return await handler(argsDoc.RootElement);
         }
         catch (Exception ex)
         {
